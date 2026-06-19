@@ -13,6 +13,7 @@ export const DEFAULT_CONFIG: ProcessingConfig = {
   blurType: 'median',
   morphologyKernelSize: 2,
   enableNoiseReduction: true,
+  enableDeskew: false,
   enableBackgroundNorm: true,
   enableThresholding: true,
   enableMorphology: true,

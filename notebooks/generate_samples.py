@@ -118,18 +118,27 @@ add_text(photo_img, "1. Parties: Company A and Partner B", (80, 160))
 add_text(photo_img, "2. Purpose: Zero-file PDF Cleaning Platform", (80, 200))
 add_text(photo_img, "3. Term: 10 weeks duration starting today.", (80, 240))
 add_text(photo_img, "4. Scope: Processing documents client-side.", (80, 280))
-
-# Darken background to simulate gray photocopy paper
 photo_img = cv2.addWeighted(photo_img, 0.7, np.ones_like(photo_img) * 120, 0.3, 0)
-photo_img[0:1100, 0:30] = [20, 20, 20] # left border
-photo_img[0:1100, 770:800] = [20, 20, 20] # right border
-
-# 1. Blur the document FIRST (simulate lens scanning blur)
+photo_img[0:1100, 0:30] = [20, 20, 20]
+photo_img[0:1100, 770:800] = [20, 20, 20]
 photo_img = cv2.GaussianBlur(photo_img, (3, 3), 0)
-
-# 2. Add sharp speckle noise AFTER (simulate glass plate dust)
 photo_img = add_noise_salt_pepper(photo_img, amount=0.02)
-
 cv2.imwrite('notebooks/samples/sample_photocopy.png', photo_img)
 
-print("Generated 4 sample scanned images in notebooks/samples/")
+# 5. Generate Skewed/Tilted Book Page
+print("Generating sample_skewed.png...")
+skewed_img = create_base_page()
+add_text(skewed_img, "AUTO-DESKEW ALGORITHM TESTING", (100, 100), font_scale=1.0, thickness=2)
+add_text(skewed_img, "This page is intentionally rotated to test the straightening feature.", (80, 160))
+add_text(skewed_img, "We use OpenCV minAreaRect to detect the dominant angle of the text.", (80, 200))
+add_text(skewed_img, "Then we rotate the image back to align it horizontally.", (80, 240))
+add_text(skewed_img, "Deskewing is a crucial pre-processing step for OCR engines", (80, 280))
+add_text(skewed_img, "and improves overall reading comfort.", (80, 320))
+# Rotate by 6.5 degrees clockwise
+(h, w) = skewed_img.shape[:2]
+center = (w // 2, h // 2)
+M = cv2.getRotationMatrix2D(center, -6.5, 1.0)
+skewed_img = cv2.warpAffine(skewed_img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255))
+cv2.imwrite('notebooks/samples/sample_skewed.png', skewed_img)
+
+print("Generated 5 sample scanned images in notebooks/samples/")

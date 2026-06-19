@@ -7,18 +7,66 @@ class DocumentCleanerPipeline:
     def __init__(self, config):
         self.config = config
         self.timings = {}
+        self.detected_skew_angle = 0.0
         
+    def deskew(self, img):
+        # We need grayscale to calculate skew angle
+        if len(img.shape) == 3:
+            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = img.copy()
+            
+        # Invert the image (text becomes white, background black)
+        thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        
+        # Grab all coordinates of white pixels (text)
+        coords = np.column_stack(np.where(thresh > 0))
+        if len(coords) == 0:
+            return img.copy(), 0.0
+            
+        # minAreaRect returns (center, size, angle)
+        rect = cv2.minAreaRect(coords)
+        angle = rect[-1]
+        
+        # Adjust angle to rotate back
+        # In OpenCV 4.x minAreaRect returns angle in range [-90, 0] or [0, 90] depending on rotation
+        if angle < -45:
+            angle = -(90 + angle)
+        elif angle > 45:
+            angle = 90 - angle
+        else:
+            angle = -angle
+            
+        # Rotate the image
+        (h, w) = img.shape[:2]
+        center = (w // 2, h // 2)
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
+        # Warp with white background
+        rotated = cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_CONSTANT, borderValue=(255, 255, 255))
+        
+        return rotated, angle
+
     def run(self, bgr_img):
         self.timings = {}
         stages = {}
-        stages['original'] = bgr_img.copy()
+        current_img = bgr_img.copy()
+        
+        # 0. Optional Auto-Deskew
+        t0 = time.perf_counter()
+        if self.config.get('enable_deskew', False):
+            current_img, angle = self.deskew(current_img)
+            self.detected_skew_angle = angle
+        else:
+            self.detected_skew_angle = 0.0
+        self.timings['deskew'] = (time.perf_counter() - t0) * 1000
+        stages['deskewed'] = current_img.copy()
         
         # 1. Grayscale
         t0 = time.perf_counter()
         if self.config.get('grayscale', True):
-            gray = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(current_img, cv2.COLOR_BGR2GRAY)
         else:
-            gray = bgr_img.copy()
+            gray = current_img.copy()
         self.timings['grayscale'] = (time.perf_counter() - t0) * 1000
         stages['grayscale'] = gray.copy()
         
@@ -109,7 +157,6 @@ class DocumentCleanerPipeline:
         
         return stages
 
-# Re-tuned configs
 MODE_CONFIGS = {
     'light-clean': {
         'grayscale': True,
@@ -143,7 +190,7 @@ MODE_CONFIGS = {
         'blur_type': 'median',
         'blur_kernel_size': 3,
         'enable_background_norm': True,
-        'norm_kernel_size': 21,
+        'norm_ksize': 21,
         'gamma': 0.6,
         'contrast': 1.6,
         'enable_thresholding': True,
@@ -156,16 +203,16 @@ MODE_CONFIGS = {
         'grayscale': True,
         'enable_noise_reduction': True,
         'blur_type': 'median',
-        'blur_kernel_size': 3, # Reduced to 3 to keep thin text strokes perfectly preserved and sharp!
+        'blur_kernel_size': 3,
         'enable_background_norm': True,
         'norm_kernel_size': 21,
         'gamma': 0.8,
         'contrast': 1.4,
         'enable_thresholding': True,
         'threshold_block_size': 21,
-        'threshold_c': 15, # Cleaner thresholding
+        'threshold_c': 15,
         'enable_morphology': True,
-        'morphology_kernel_size': 2 # Reduced to 2 to protect 2-pixel wide fine characters from erosion
+        'morphology_kernel_size': 2
     },
     'compressed-output': {
         'grayscale': True,
@@ -189,25 +236,33 @@ output_dir = 'notebooks/outputs'
 os.makedirs(output_dir, exist_ok=True)
 
 test_cases = [
-    ('Book Page (Shadows)', 'sample_book.png', 'strong-background-removal'),
-    ('Receipt (Faded)', 'sample_receipt.png', 'text-contrast-boost'),
-    ('Journal (Yellow/Coffee)', 'sample_handwriting.png', 'light-clean'),
-    ('Photocopy (Heavy Noise)', 'sample_photocopy.png', 'print-optimized')
+    ('Book Page (Shadows)', 'sample_book.png', 'strong-background-removal', False),
+    ('Receipt (Faded)', 'sample_receipt.png', 'text-contrast-boost', False),
+    ('Journal (Yellow/Coffee)', 'sample_handwriting.png', 'light-clean', False),
+    ('Photocopy (Heavy Noise)', 'sample_photocopy.png', 'print-optimized', False),
+    ('Skewed Page (Tilted)', 'sample_skewed.png', 'strong-background-removal', True)
 ]
 
-for title, filename, mode in test_cases:
+for title, filename, mode, enable_deskew in test_cases:
     img_path = os.path.join(sample_dir, filename)
     img = cv2.imread(img_path)
     if img is None:
         print(f"Error: Could not load image at {img_path}")
         continue
     
-    config = MODE_CONFIGS[mode]
+    config = MODE_CONFIGS[mode].copy()
+    config['enable_deskew'] = enable_deskew
+    
     cleaner = DocumentCleanerPipeline(config)
     stages = cleaner.run(img)
     
     print(f"\n=== {title} processed with mode: {mode} ===")
+    if enable_deskew:
+        print(f"  Auto-Deskew: ENABLED")
+        print(f"  Detected Skew Angle: {cleaner.detected_skew_angle:.2f} degrees")
     for stage, t in cleaner.timings.items():
+        if stage == 'deskew' and not enable_deskew:
+            continue
         print(f"  Stage '{stage}': {t:.2f} ms")
     total_t = sum(cleaner.timings.values())
     print(f"  Total execution time: {total_t:.2f} ms")

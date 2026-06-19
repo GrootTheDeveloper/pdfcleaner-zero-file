@@ -19,6 +19,7 @@ export type ProcessingConfig = {
   blurType?: 'gaussian' | 'median'; // default 'median'
   morphologyKernelSize?: number;  // odd number, 1-5, default 2
   enableNoiseReduction: boolean;  // default true
+  enableDeskew?: boolean;         // default false
   enableBackgroundNorm: boolean;  // default true
   enableThresholding: boolean;    // default true (false for light-clean)
   enableMorphology: boolean;      // default true
