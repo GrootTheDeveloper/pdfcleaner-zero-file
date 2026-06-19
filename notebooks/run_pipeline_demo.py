@@ -27,7 +27,14 @@ class DocumentCleanerPipeline:
         if self.config.get('enable_noise_reduction', True):
             ksize = self.config.get('blur_kernel_size', 3)
             ksize = ksize if ksize % 2 == 1 else ksize + 1
-            blurred = cv2.GaussianBlur(gray, (ksize, ksize), 0)
+            
+            blur_type = self.config.get('blur_type', 'median')
+            if blur_type == 'median':
+                blurred = cv2.medianBlur(gray, ksize)
+            elif blur_type == 'gaussian':
+                blurred = cv2.GaussianBlur(gray, (ksize, ksize), 0)
+            else:
+                blurred = cv2.GaussianBlur(gray, (ksize, ksize), 0)
         else:
             blurred = gray.copy()
         self.timings['noise_reduction'] = (time.perf_counter() - t0) * 1000
@@ -72,7 +79,7 @@ class DocumentCleanerPipeline:
         if self.config.get('enable_thresholding', True):
             block = self.config.get('threshold_block_size', 21)
             block = block if block % 2 == 1 else block + 1
-            c_val = self.config.get('threshold_c', 5)
+            c_val = self.config.get('threshold_c', 10)
             thresholded = cv2.adaptiveThreshold(
                 contrast_stretched,
                 255,
@@ -82,13 +89,13 @@ class DocumentCleanerPipeline:
                 c_val
             )
         else:
-            _, thresholded = cv2.threshold(contrast_stretched, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            thresholded = contrast_stretched.copy()
         self.timings['thresholding'] = (time.perf_counter() - t0) * 1000
         stages['thresholded'] = thresholded.copy()
         
         # 7. Morphology Cleanup (Noise Removal)
         t0 = time.perf_counter()
-        if self.config.get('enable_morphology', True):
+        if self.config.get('enable_morphology', True) and self.config.get('enable_thresholding', True):
             morph_size = self.config.get('morphology_kernel_size', 2)
             if morph_size > 0:
                 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (morph_size, morph_size))
@@ -102,11 +109,11 @@ class DocumentCleanerPipeline:
         
         return stages
 
-# 5 predefined modes matching the spec
 MODE_CONFIGS = {
     'light-clean': {
         'grayscale': True,
         'enable_noise_reduction': True,
+        'blur_type': 'gaussian',
         'blur_kernel_size': 3,
         'enable_background_norm': False,
         'gamma': 1.1,
@@ -117,6 +124,7 @@ MODE_CONFIGS = {
     'strong-background-removal': {
         'grayscale': True,
         'enable_noise_reduction': True,
+        'blur_type': 'median',
         'blur_kernel_size': 3,
         'enable_background_norm': True,
         'norm_kernel_size': 25,
@@ -124,49 +132,52 @@ MODE_CONFIGS = {
         'contrast': 1.4,
         'enable_thresholding': True,
         'threshold_block_size': 25,
-        'threshold_c': 8,
+        'threshold_c': 15,
         'enable_morphology': True,
         'morphology_kernel_size': 2
     },
     'text-contrast-boost': {
         'grayscale': True,
         'enable_noise_reduction': True,
+        'blur_type': 'median',
         'blur_kernel_size': 3,
         'enable_background_norm': True,
-        'norm_kernel_size': 21,
-        'gamma': 0.7,
+        'norm_ksize': 21,
+        'gamma': 0.6,
         'contrast': 1.6,
         'enable_thresholding': True,
         'threshold_block_size': 21,
-        'threshold_c': 5,
+        'threshold_c': 12,
         'enable_morphology': True,
         'morphology_kernel_size': 2
     },
     'print-optimized': {
         'grayscale': True,
         'enable_noise_reduction': True,
-        'blur_kernel_size': 3,
+        'blur_type': 'median',
+        'blur_kernel_size': 7, # Increased median blur size to 7 to dissolve larger blurred noise patches
         'enable_background_norm': True,
-        'norm_kernel_size': 21,
-        'gamma': 0.9,
-        'contrast': 1.3,
+        'norm_kernel_size': 31,
+        'gamma': 0.8,
+        'contrast': 1.4,
         'enable_thresholding': True,
-        'threshold_block_size': 21,
-        'threshold_c': 5,
+        'threshold_block_size': 51,
+        'threshold_c': 45,
         'enable_morphology': True,
-        'morphology_kernel_size': 2
+        'morphology_kernel_size': 5
     },
     'compressed-output': {
         'grayscale': True,
         'enable_noise_reduction': True,
-        'blur_kernel_size': 5,
+        'blur_type': 'median',
+        'blur_kernel_size': 3,
         'enable_background_norm': True,
         'norm_kernel_size': 15,
-        'gamma': 1.0,
-        'contrast': 1.2,
+        'gamma': 0.9,
+        'contrast': 1.3,
         'enable_thresholding': True,
         'threshold_block_size': 15,
-        'threshold_c': 5,
+        'threshold_c': 10,
         'enable_morphology': True,
         'morphology_kernel_size': 2
     }

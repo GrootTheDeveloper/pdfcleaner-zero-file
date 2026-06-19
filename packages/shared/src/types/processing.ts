@@ -16,6 +16,7 @@ export type ProcessingConfig = {
   thresholdBlockSize?: number;    // odd number, 11-51, default 21
   thresholdC?: number;            // 2-15, default 5
   blurKernelSize?: number;        // odd number, 3-7, default 3
+  blurType?: 'gaussian' | 'median'; // default 'median'
   morphologyKernelSize?: number;  // odd number, 1-5, default 2
   enableNoiseReduction: boolean;  // default true
   enableBackgroundNorm: boolean;  // default true
