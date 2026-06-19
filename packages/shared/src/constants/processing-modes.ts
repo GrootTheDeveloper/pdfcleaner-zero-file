@@ -1,0 +1,56 @@
+import { ProcessingConfig, ProcessingMode } from '../types/processing';
+
+export const DEFAULT_CONFIG: ProcessingConfig = {
+  mode: 'light-clean',
+  dpi: 200,
+  jpegQuality: 85,
+  grayscale: true,
+  gamma: 1.0,
+  contrast: 1.2,
+  thresholdBlockSize: 21,
+  thresholdC: 5,
+  blurKernelSize: 3,
+  morphologyKernelSize: 2,
+  enableNoiseReduction: true,
+  enableBackgroundNorm: true,
+  enableThresholding: true,
+  enableMorphology: true,
+};
+
+export const MODE_CONFIGS: Record<Exclude<ProcessingMode, 'custom'>, Partial<ProcessingConfig>> = {
+  'light-clean': {
+    gamma: 1.1,
+    contrast: 1.1,
+    enableThresholding: false,
+    enableMorphology: false,
+    jpegQuality: 90,
+  },
+  'strong-background-removal': {
+    gamma: 0.8,
+    contrast: 1.4,
+    thresholdBlockSize: 25,
+    thresholdC: 8,
+    morphologyKernelSize: 2,
+    jpegQuality: 85,
+  },
+  'text-contrast-boost': {
+    gamma: 0.7,
+    contrast: 1.6,
+    enableBackgroundNorm: true,
+    jpegQuality: 90,
+  },
+  'print-optimized': {
+    gamma: 0.9,
+    contrast: 1.3,
+    thresholdBlockSize: 21,
+    thresholdC: 5,
+    jpegQuality: 85,
+    dpi: 300,
+  },
+  'compressed-output': {
+    gamma: 1.0,
+    contrast: 1.2,
+    jpegQuality: 70,
+    dpi: 150,
+  },
+};
