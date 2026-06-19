@@ -109,6 +109,7 @@ class DocumentCleanerPipeline:
         
         return stages
 
+# Re-tuned configs
 MODE_CONFIGS = {
     'light-clean': {
         'grayscale': True,
@@ -142,7 +143,7 @@ MODE_CONFIGS = {
         'blur_type': 'median',
         'blur_kernel_size': 3,
         'enable_background_norm': True,
-        'norm_ksize': 21,
+        'norm_kernel_size': 21,
         'gamma': 0.6,
         'contrast': 1.6,
         'enable_thresholding': True,
@@ -155,16 +156,16 @@ MODE_CONFIGS = {
         'grayscale': True,
         'enable_noise_reduction': True,
         'blur_type': 'median',
-        'blur_kernel_size': 7, # Increased median blur size to 7 to dissolve larger blurred noise patches
+        'blur_kernel_size': 3, # Reduced to 3 to keep thin text strokes perfectly preserved and sharp!
         'enable_background_norm': True,
-        'norm_kernel_size': 31,
+        'norm_kernel_size': 21,
         'gamma': 0.8,
         'contrast': 1.4,
         'enable_thresholding': True,
-        'threshold_block_size': 51,
-        'threshold_c': 45,
+        'threshold_block_size': 21,
+        'threshold_c': 15, # Cleaner thresholding
         'enable_morphology': True,
-        'morphology_kernel_size': 5
+        'morphology_kernel_size': 2 # Reduced to 2 to protect 2-pixel wide fine characters from erosion
     },
     'compressed-output': {
         'grayscale': True,
