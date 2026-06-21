@@ -17,7 +17,7 @@ COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY . .
 RUN pnpm --filter @pdfcleaner/shared build
-RUN pnpm --filter @pdfcleaner/api prisma generate
+RUN pnpm --filter @pdfcleaner/api exec prisma generate
 RUN pnpm --filter @pdfcleaner/api build
 RUN pnpm deploy --filter @pdfcleaner/api --prod /prod/api
 
@@ -30,4 +30,4 @@ COPY --from=builder --chown=pdfcleaner:nodejs /app/apps/api/prisma ./prisma
 USER pdfcleaner
 EXPOSE 3001
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 CMD node -e "fetch('http://127.0.0.1:3001/api/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/main.js"]
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main.js"]
