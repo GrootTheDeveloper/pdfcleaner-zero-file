@@ -1,26 +1,77 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f4efe6;
+  --foreground: #1e293b;
+  --card-bg: #ffffff;
+  --card-border: #e8dfd1;
+  --accent-blue: #2563eb;
+  --accent-red: #dd2d4a;
+  --accent-dark-red: #880d1e;
+  --accent-yellow: #f59e0b;
+  --dropzone-bg: rgba(244, 156, 187, 0.04);
+  --dropzone-bg-hover: rgba(244, 156, 187, 0.12);
+  --dropzone-border: #f26a8d;
+  --badge-bg: #cbeef3;
+  --badge-text: #105863;
+  --log-bg: #faf7f2;
+  --status-text: #64748b;
 }
 
-@theme inline {
+.dark {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  --card-bg: #111827;
+  --card-border: #1f2937;
+  --accent-blue: #3b82f6;
+  --accent-red: #f26a8d;
+  --accent-dark-red: #dd2d4a;
+  --accent-yellow: #fbbf24;
+  --dropzone-bg: rgba(244, 156, 187, 0.02);
+  --dropzone-bg-hover: rgba(244, 156, 187, 0.08);
+  --dropzone-border: rgba(242, 106, 141, 0.4);
+  --badge-bg: rgba(203, 238, 243, 0.1);
+  --badge-text: #cbeef3;
+  --log-bg: #0d1320;
+  --status-text: #94a3b8;
+}
+
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-card-bg: var(--card-bg);
+  --color-card-border: var(--card-border);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-red: var(--accent-red);
+  --color-accent-dark-red: var(--accent-dark-red);
+  --color-accent-yellow: var(--accent-yellow);
+  --color-dropzone-bg: var(--dropzone-bg);
+  --color-dropzone-bg-hover: var(--dropzone-bg-hover);
+  --color-dropzone-border: var(--dropzone-border);
+  --color-badge-bg: var(--badge-bg);
+  --color-badge-text: var(--badge-text);
+  --color-log-bg: var(--log-bg);
+  --color-status-text: var(--status-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dot-grid {
+  background-image: radial-gradient(var(--card-border) 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }

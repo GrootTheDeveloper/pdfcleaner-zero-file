@@ -1,0 +1,90 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String        @id @default(uuid()) @db.Uuid
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  presets      Preset[]
+  telemetry    Telemetry[]
+  errorReports ErrorReport[]
+
+  @@map("users")
+}
+
+model Preset {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  config    Json     // Stores ProcessingConfig JSON object
+  isPublic  Boolean  @default(false) @map("is_public")
+  userId    String?  @map("user_id") @db.Uuid
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("presets")
+}
+
+model Telemetry {
+  id              String   @id @default(uuid()) @db.Uuid
+  userId          String?  @map("user_id") @db.Uuid
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  mode            String   // Preset mode name or 'custom'
+  pagesProcessed  Int      @map("pages_processed")
+  pagesSkipped    Int      @map("pages_skipped")
+  durationMs      Int      @map("duration_ms")
+  outputSizeBytes Int      @map("output_size_bytes")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("telemetry")
+}
+
+model ErrorReport {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String?  @map("user_id") @db.Uuid
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  errorCode    String   @map("error_code")
+  errorMessage String   @map("error_message")
+  stackTrace   String?  @map("stack_trace") @db.Text
+  mode         String
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([errorCode])
+  @@map("error_reports")
+}
+
+model EngineConfig {
+  id        String   @id // Config key, e.g. "LIMITS"
+  value     Json     // Config parameters JSON object
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("engine_configs")
+}
+
+model AppVersion {
+  id          String   @id @default(uuid()) @db.Uuid
+  version     String   @unique
+  forceUpdate Boolean  @default(false) @map("force_update")
+  releasedAt  DateTime @default(now()) @map("released_at")
+
+  @@map("app_versions")
+}

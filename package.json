@@ -1,8 +1,8 @@
 {
   "name": "pdfcleaner-monorepo",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Privacy-first scanned PDF cleaning platform",
+  "description": "Privacy-first scanned PDF cleaning platform powered by OpenCV.js WebAssembly",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -12,10 +12,35 @@
     "db:migrate": "pnpm --filter @pdfcleaner/api prisma migrate dev",
     "db:generate": "pnpm --filter @pdfcleaner/api prisma generate",
     "docker:up": "docker-compose up -d postgres redis",
-    "docker:down": "docker-compose down"
+    "docker:down": "docker-compose down",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css}\" --ignore-path .prettierignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml,css}\" --ignore-path .prettierignore",
+    "test:ci": "turbo run test:ci",
+    "test:e2e": "pnpm --filter @pdfcleaner/api test:e2e",
+    "db:deploy": "pnpm --filter @pdfcleaner/api prisma migrate deploy",
+    "prod:up": "docker-compose --env-file .env.production -f docker-compose.prod.yml up -d --build",
+    "prod:down": "docker-compose --env-file .env.production -f docker-compose.prod.yml down",
+    "prod:logs": "docker-compose --env-file .env.production -f docker-compose.prod.yml logs -f",
+    "release:check": "pnpm lint && pnpm typecheck && pnpm test:ci && pnpm build"
   },
   "devDependencies": {
+    "prettier": "^3.8.4",
     "turbo": "^2.0.14"
   },
-  "packageManager": "pnpm@10.22.0"
+  "packageManager": "pnpm@10.22.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GrootTheDeveloper/PDFCleaner.git"
+  },
+  "license": "MIT",
+  "author": "Dang Phuc An Khang",
+  "keywords": [
+    "pdf",
+    "opencv",
+    "wasm",
+    "nextjs",
+    "nestjs",
+    "privacy-first",
+    "document-cleaning"
+  ]
 }

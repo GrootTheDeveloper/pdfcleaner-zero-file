@@ -23,4 +23,4 @@ export const ErrorCodes = {
   PDF_CORRUPT: 'PDF_CORRUPT',
 } as const;
 
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];

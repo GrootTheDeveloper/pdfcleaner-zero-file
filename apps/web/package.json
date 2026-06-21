@@ -3,26 +3,42 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "copy-worker": "node -e \"const fs = require('fs'); fs.copyFileSync('node_modules/pdfjs-dist/build/pdf.worker.min.mjs', 'public/pdf.worker.min.mjs')\"",
+    "dev": "pnpm copy-worker && next dev",
+    "build": "pnpm copy-worker && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"No tests for web yet\""
+    "test": "pnpm copy-worker && vitest run",
+    "test:ci": "pnpm copy-worker && vitest run"
   },
   "dependencies": {
+    "@pdfcleaner/processing-engine": "workspace:*",
+    "@pdfcleaner/shared": "workspace:*",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.40.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^1.21.0",
     "next": "16.2.9",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.0.227",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.2",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "jsdom": "^29.1.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "typescript": "^5",
+    "vitest": "^4.1.9"
+  },
+  "description": "PDFCleaner Next.js web application"
 }

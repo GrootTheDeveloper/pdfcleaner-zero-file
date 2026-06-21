@@ -1,6 +1,6 @@
 {
   "name": "@pdfcleaner/processing-engine",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -8,16 +8,20 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "echo \"No tests for processing-engine yet\""
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:ci": "vitest run"
   },
   "dependencies": {
-    "@pdfcleaner/shared": "workspace:*"
+    "@pdfcleaner/shared": "workspace:*",
+    "@techstark/opencv-js": "4.12.0-release.1"
   },
   "devDependencies": {
-    "typescript": "^5.7.3",
+    "@eslint/js": "^9.18.0",
+    "@vitest/coverage-v8": "^4.1.9",
     "eslint": "^9.18.0",
+    "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0",
-    "@eslint/js": "^9.18.0"
+    "vitest": "^4.1.9"
   }
 }

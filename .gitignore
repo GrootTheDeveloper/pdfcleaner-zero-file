@@ -15,6 +15,7 @@ dist/
 
 # Environment variables
 .env
+.env.production
 .env.local
 .env.development.local
 .env.test.local
@@ -51,3 +52,7 @@ html-report/
 
 # TypeScript build info
 *.tsbuildinfo
+
+.codex-run/
+apps/web/public/pdf.worker.min.mjs
+notebooks/outputs/

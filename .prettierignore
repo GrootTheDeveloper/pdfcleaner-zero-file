@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+dist/
+.turbo/
+coverage/
+.nyc_output/
+html-report/
+logs/
+*.log
+*.tsbuildinfo
+.codex-run/
+apps/web/next-env.d.ts
+apps/web/public/pdf.worker.min.mjs
+notebooks/outputs/
